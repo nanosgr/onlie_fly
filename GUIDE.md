@@ -21,14 +21,14 @@ Referencia personal para arrancar nuevos proyectos basados en este template. Cub
 
 ## 1. Qué ofrece este template
 
-| Capa | Tecnología | Propósito |
-|---|---|---|
-| Backend | FastAPI + SQLModel | API REST con auth JWT |
-| Base de datos | PostgreSQL 17 | Persistencia vía SQLAlchemy ORM |
-| Migraciones | Alembic | Control de versiones del schema |
-| Frontend | Next.js 15 + TypeScript | SPA con gestión de auth y permisos |
-| Estilos | Tailwind CSS v4 | UI con soporte dark/light mode |
-| Infraestructura | Docker Compose | Levanta PostgreSQL en local |
+| Capa            | Tecnología              | Propósito                          |
+| --------------- | ----------------------- | ---------------------------------- |
+| Backend         | FastAPI + SQLModel      | API REST con auth JWT              |
+| Base de datos   | PostgreSQL 17           | Persistencia vía SQLAlchemy ORM    |
+| Migraciones     | Alembic                 | Control de versiones del schema    |
+| Frontend        | Next.js 15 + TypeScript | SPA con gestión de auth y permisos |
+| Estilos         | Tailwind CSS v4         | UI con soporte dark/light mode     |
+| Infraestructura | Docker Compose          | Levanta PostgreSQL en local        |
 
 **Sistema de permisos RBAC:** `recurso:acción` — granular, heredado por roles. Los superusuarios reciben el wildcard `*:*` tratado como un permiso más, no como bypass especial.
 
@@ -133,12 +133,12 @@ App disponible en: `http://localhost:3000`
 
 ### 2.6 Usuarios de prueba por defecto
 
-| Usuario | Contraseña | Rol | Superuser |
-|---|---|---|---|
-| superadmin | admin123 | Super Admin | Sí |
-| admin | admin123 | Admin | No |
-| manager | manager123 | Manager | No |
-| user | user123 | User | No |
+| Usuario    | Contraseña | Rol         | Superuser |
+| ---------- | ---------- | ----------- | --------- |
+| superadmin | admin123   | Super Admin | Sí        |
+| admin      | admin123   | Admin       | No        |
+| manager    | manager123 | Manager     | No        |
+| user       | user123    | User        | No        |
 
 > **Cambiar estas contraseñas antes de cualquier deploy.**
 
@@ -241,6 +241,7 @@ def require_permissions(required_permissions: List[str]):
 ```
 
 **Uso en un endpoint:**
+
 ```python
 @router.get("/productos")
 def listar_productos(
@@ -250,6 +251,7 @@ def listar_productos(
 ```
 
 **Helpers predefinidos:**
+
 ```python
 def require_user_read():
     return require_permissions(["users:read"])
@@ -283,11 +285,11 @@ Ambos rechazan si `token_version` del token no coincide con el valor en DB.
 
 El campo `token_version: int` en el modelo `User` actúa como versión de sesión. Cada vez que se incrementa, todos los tokens JWT anteriores quedan inválidos sin necesidad de blacklist ni Redis.
 
-| Evento | Efecto sobre `token_version` |
-|---|---|
-| `POST /auth/logout` | +1 (logout explícito) |
-| `PUT /users/{id}/roles` (asignar roles) | +1 (permisos cambiaron) |
-| `PUT /users/{id}` con `is_active=false` | +1 (cuenta desactivada) |
+| Evento                                  | Efecto sobre `token_version` |
+| --------------------------------------- | ---------------------------- |
+| `POST /auth/logout`                     | +1 (logout explícito)        |
+| `PUT /users/{id}/roles` (asignar roles) | +1 (permisos cambiaron)      |
+| `PUT /users/{id}` con `is_active=false` | +1 (cuenta desactivada)      |
 
 **Trade-off:** Este enfoque invalida todos los tokens del usuario a la vez (no permite sesiones concurrentes independientes). Para tokens con granularidad por sesión se necesitaría un almacén externo (Redis).
 
@@ -313,7 +315,7 @@ Si múltiples requests reciben 401 simultáneamente, el cliente serializa el ref
 ```typescript
 // Solo un intento de refresh a la vez; el resto espera la misma promesa
 if (this.isRefreshing && this.refreshPromise) {
-    return this.refreshPromise;
+  return this.refreshPromise;
 }
 ```
 
@@ -395,6 +397,7 @@ async def login(request: Request, ...):
 ```
 
 Para agregar rate limiting a un endpoint propio:
+
 ```python
 from app.core.limiter import limiter
 from app.core.config import settings
@@ -409,17 +412,17 @@ async def mi_endpoint(request: Request, ...):
 
 Campos registrados en cada evento:
 
-| Campo | Descripción |
-|---|---|
-| `user_id`, `username` | Actor (quien ejecuta la acción) |
-| `subject_id` | Sujeto (usuario afectado, si aplica) |
-| `action` | `create`, `update`, `delete`, `login`, `logout`, `password_change`, etc. |
-| `resource`, `resource_id` | Recurso afectado |
-| `before_data`, `after_data` | JSON con estado antes/después (diff) |
-| `status` | `success` o `failure` |
-| `ip_address`, `user_agent` | Contexto de red |
-| `request_id` | UUID por request para tracing |
-| `timestamp` | UTC automático |
+| Campo                       | Descripción                                                              |
+| --------------------------- | ------------------------------------------------------------------------ |
+| `user_id`, `username`       | Actor (quien ejecuta la acción)                                          |
+| `subject_id`                | Sujeto (usuario afectado, si aplica)                                     |
+| `action`                    | `create`, `update`, `delete`, `login`, `logout`, `password_change`, etc. |
+| `resource`, `resource_id`   | Recurso afectado                                                         |
+| `before_data`, `after_data` | JSON con estado antes/después (diff)                                     |
+| `status`                    | `success` o `failure`                                                    |
+| `ip_address`, `user_agent`  | Contexto de red                                                          |
+| `request_id`                | UUID por request para tracing                                            |
+| `timestamp`                 | UTC automático                                                           |
 
 **Uso en un endpoint:**
 
@@ -462,18 +465,18 @@ Los logs son consultables vía `GET /api/v1/audit/logs` (requiere permiso `audit
 
 ### 4.1 Diseño de seguridad
 
-| Decisión | Implementación |
-|---|---|
-| Generación del token | `secrets.token_urlsafe(32)` — 256 bits de entropía |
-| Almacenamiento | Hash SHA-256 en DB (`password_reset_tokens.token_hash`) — nunca el token crudo |
-| Expiración | 30 minutos (configurable con `RESET_TOKEN_EXPIRE_MINUTES`) |
-| Uso único | `used=True` + `used_at` al consumirlo; tokens usados no se aceptan |
-| Invalidación previa | Al crear un token nuevo, los pendientes del mismo usuario se eliminan |
-| Anti-enumeración | Siempre se retorna la misma respuesta genérica, exista o no el usuario |
-| Envío de email | `BackgroundTask` — el endpoint responde inmediatamente sin esperar el SMTP |
-| Rate limiting | `/request`: 5/hour · `/confirm`: 10/hour (ambos por IP) |
-| JWT invalidation | `token_version += 1` tras reset exitoso → todos los tokens activos quedan inválidos |
-| Auditoría | `password_reset_request` y `password_reset_confirm` en `audit_logs` |
+| Decisión             | Implementación                                                                      |
+| -------------------- | ----------------------------------------------------------------------------------- |
+| Generación del token | `secrets.token_urlsafe(32)` — 256 bits de entropía                                  |
+| Almacenamiento       | Hash SHA-256 en DB (`password_reset_tokens.token_hash`) — nunca el token crudo      |
+| Expiración           | 30 minutos (configurable con `RESET_TOKEN_EXPIRE_MINUTES`)                          |
+| Uso único            | `used=True` + `used_at` al consumirlo; tokens usados no se aceptan                  |
+| Invalidación previa  | Al crear un token nuevo, los pendientes del mismo usuario se eliminan               |
+| Anti-enumeración     | Siempre se retorna la misma respuesta genérica, exista o no el usuario              |
+| Envío de email       | `BackgroundTask` — el endpoint responde inmediatamente sin esperar el SMTP          |
+| Rate limiting        | `/request`: 5/hour · `/confirm`: 10/hour (ambos por IP)                             |
+| JWT invalidation     | `token_version += 1` tras reset exitoso → todos los tokens activos quedan inválidos |
+| Auditoría            | `password_reset_request` y `password_reset_confirm` en `audit_logs`                 |
 
 ### 4.2 Flujo completo
 
@@ -511,16 +514,16 @@ Los logs son consultables vía `GET /api/v1/audit/logs` (requiere permiso `audit
 
 ### 4.3 Tabla `password_reset_tokens`
 
-| Campo | Tipo | Descripción |
-|---|---|---|
-| `id` | int PK | — |
-| `user_id` | int FK → users(CASCADE) | Propietario del token |
-| `token_hash` | str (indexed) | SHA-256 del token enviado por email |
-| `expires_at` | datetime tz | Momento de expiración |
-| `used` | bool | `True` si ya fue consumido |
-| `used_at` | datetime tz | Cuándo fue usado |
-| `ip_requested` | str | IP que solicitó el reset |
-| `created_at` | datetime tz | Creación automática |
+| Campo          | Tipo                    | Descripción                         |
+| -------------- | ----------------------- | ----------------------------------- |
+| `id`           | int PK                  | —                                   |
+| `user_id`      | int FK → users(CASCADE) | Propietario del token               |
+| `token_hash`   | str (indexed)           | SHA-256 del token enviado por email |
+| `expires_at`   | datetime tz             | Momento de expiración               |
+| `used`         | bool                    | `True` si ya fue consumido          |
+| `used_at`      | datetime tz             | Cuándo fue usado                    |
+| `ip_requested` | str                     | IP que solicitó el reset            |
+| `created_at`   | datetime tz             | Creación automática                 |
 
 ### 4.4 Configurar SMTP en `.env`
 
@@ -540,6 +543,7 @@ FRONTEND_URL=https://mi-dominio.com
 ```
 
 Para SMTP sin autenticación (relay interno):
+
 ```env
 SMTP_HOST=relay.interno.empresa.com
 SMTP_PORT=25
@@ -561,18 +565,18 @@ La migración `e4f5a6b7c8d9` crea la tabla `password_reset_tokens`.
 
 ### 4.6 Nuevos endpoints
 
-| Método | Endpoint | Autenticación | Rate limit |
-|---|---|---|---|
-| POST | `/api/v1/auth/password-reset/request` | No requerida | 5/hour por IP |
-| POST | `/api/v1/auth/password-reset/confirm` | No requerida | 10/hour por IP |
+| Método | Endpoint                              | Autenticación | Rate limit     |
+| ------ | ------------------------------------- | ------------- | -------------- |
+| POST   | `/api/v1/auth/password-reset/request` | No requerida  | 5/hour por IP  |
+| POST   | `/api/v1/auth/password-reset/confirm` | No requerida  | 10/hour por IP |
 
 ### 4.7 Páginas del frontend
 
-| Ruta | Descripción |
-|---|---|
-| `/forgot-password` | Formulario para solicitar el reset (acepta email o username) |
-| `/reset-password?token=<token>` | Formulario para ingresar la nueva contraseña |
-| `/login` | Ahora incluye link "¿Olvidaste tu contraseña?" |
+| Ruta                            | Descripción                                                  |
+| ------------------------------- | ------------------------------------------------------------ |
+| `/forgot-password`              | Formulario para solicitar el reset (acepta email o username) |
+| `/reset-password?token=<token>` | Formulario para ingresar la nueva contraseña                 |
+| `/login`                        | Ahora incluye link "¿Olvidaste tu contraseña?"               |
 
 ### 4.8 Archivos relevantes
 
@@ -968,19 +972,19 @@ export interface GetProductosParams {
 ```typescript
 export const productoService = {
   getAll: (params?: GetProductosParams) =>
-    apiClient.get<PaginatedResponse<Producto>>(`/productos?${buildQuery(params)}`),
+    apiClient.get<PaginatedResponse<Producto>>(
+      `/productos?${buildQuery(params)}`,
+    ),
 
-  getById: (id: number) =>
-    apiClient.get<Producto>(`/productos/${id}`),
+  getById: (id: number) => apiClient.get<Producto>(`/productos/${id}`),
 
   create: (data: CreateProductoDTO) =>
-    apiClient.post<Producto>('/productos', data),
+    apiClient.post<Producto>("/productos", data),
 
   update: (id: number, data: UpdateProductoDTO) =>
     apiClient.put<Producto>(`/productos/${id}`, data),
 
-  delete: (id: number) =>
-    apiClient.delete<void>(`/productos/${id}`),
+  delete: (id: number) => apiClient.delete<void>(`/productos/${id}`),
 };
 ```
 
@@ -989,15 +993,15 @@ export const productoService = {
 `frontend/app/productos/page.tsx`
 
 ```tsx
-'use client';
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/context/ToastContext';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import ProtectedComponent from '@/components/common/ProtectedComponent';
-import { productoService } from '@/lib/api/services';
-import type { Producto } from '@/types';
+"use client";
+import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/context/ToastContext";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import ProtectedComponent from "@/components/common/ProtectedComponent";
+import { productoService } from "@/lib/api/services";
+import type { Producto } from "@/types";
 
 export default function ProductosPage() {
   const { isAuthenticated, isLoading, hasPermission } = useAuth();
@@ -1008,8 +1012,9 @@ export default function ProductosPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) router.push('/login');
-    if (!isLoading && isAuthenticated && !hasPermission('productos:read')) router.push('/dashboard');
+    if (!isLoading && !isAuthenticated) router.push("/login");
+    if (!isLoading && isAuthenticated && !hasPermission("productos:read"))
+      router.push("/dashboard");
   }, [isAuthenticated, isLoading, hasPermission, router]);
 
   const fetchProductos = useCallback(async () => {
@@ -1018,7 +1023,7 @@ export default function ProductosPage() {
       const data = await productoService.getAll({ page: 1, size: 20 });
       setProductos(data.items);
     } catch {
-      showToast('Error al cargar productos', 'error');
+      showToast("Error al cargar productos", "error");
     } finally {
       setLoading(false);
     }
@@ -1036,19 +1041,37 @@ export default function ProductosPage() {
         <div className="flex justify-between items-center">
           <h1 className="text-xl font-semibold">Productos</h1>
 
-          <ProtectedComponent permissions={['productos:create']}>
-            <button onClick={() => { /* abrir modal */ }}>Nuevo producto</button>
+          <ProtectedComponent permissions={["productos:create"]}>
+            <button
+              onClick={() => {
+                /* abrir modal */
+              }}
+            >
+              Nuevo producto
+            </button>
           </ProtectedComponent>
         </div>
 
-        {productos.map(p => (
+        {productos.map((p) => (
           <div key={p.id}>
             <span>{p.nombre}</span>
-            <ProtectedComponent permissions={['productos:update']}>
-              <button onClick={() => { /* editar */ }}>Editar</button>
+            <ProtectedComponent permissions={["productos:update"]}>
+              <button
+                onClick={() => {
+                  /* editar */
+                }}
+              >
+                Editar
+              </button>
             </ProtectedComponent>
-            <ProtectedComponent permissions={['productos:delete']}>
-              <button onClick={() => { /* eliminar */ }}>Eliminar</button>
+            <ProtectedComponent permissions={["productos:delete"]}>
+              <button
+                onClick={() => {
+                  /* eliminar */
+                }}
+              >
+                Eliminar
+              </button>
             </ProtectedComponent>
           </div>
         ))}
@@ -1065,16 +1088,41 @@ export default function ProductosPage() {
 `frontend/components/layout/Sidebar.tsx`
 
 ```tsx
-import { Package } from 'lucide-react';
+import { Package } from "lucide-react";
 
 const navItems: NavItem[] = [
-  { label: 'Dashboard',   href: '/dashboard',   icon: LayoutDashboard, permissions: ['dashboard:read'] },
-  { label: 'Mi Perfil',   href: '/profile',     icon: User },
-  { label: 'Usuarios',    href: '/users',        icon: Users,           permissions: ['users:read'] },
-  { label: 'Productos',   href: '/productos',    icon: Package,         permissions: ['productos:read'] },
-  { label: 'Roles',       href: '/roles',        icon: Shield,          permissions: ['roles:read'] },
-  { label: 'Permisos',    href: '/permissions',  icon: Key,             permissions: ['permissions:read'] },
-  { label: 'Auditoría',   href: '/audit',        icon: ClipboardList,   permissions: ['audit:read'] },
+  {
+    label: "Dashboard",
+    href: "/dashboard",
+    icon: LayoutDashboard,
+    permissions: ["dashboard:read"],
+  },
+  { label: "Mi Perfil", href: "/profile", icon: User },
+  {
+    label: "Usuarios",
+    href: "/users",
+    icon: Users,
+    permissions: ["users:read"],
+  },
+  {
+    label: "Productos",
+    href: "/productos",
+    icon: Package,
+    permissions: ["productos:read"],
+  },
+  { label: "Roles", href: "/roles", icon: Shield, permissions: ["roles:read"] },
+  {
+    label: "Permisos",
+    href: "/permissions",
+    icon: Key,
+    permissions: ["permissions:read"],
+  },
+  {
+    label: "Auditoría",
+    href: "/audit",
+    icon: ClipboardList,
+    permissions: ["audit:read"],
+  },
 ];
 ```
 
@@ -1100,21 +1148,24 @@ const navItems: NavItem[] = [
 ### 7.6 Verificar permisos directamente en código
 
 ```tsx
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from "@/context/AuthContext";
 
 function FilaProducto({ producto }: { producto: Producto }) {
   const { hasPermission, hasAnyPermission } = useAuth();
 
-  const puedeEditar   = hasPermission('productos:update');
-  const puedeEliminar = hasPermission('productos:delete');
-  const puedeActuar   = hasAnyPermission(['productos:update', 'productos:delete']);
+  const puedeEditar = hasPermission("productos:update");
+  const puedeEliminar = hasPermission("productos:delete");
+  const puedeActuar = hasAnyPermission([
+    "productos:update",
+    "productos:delete",
+  ]);
 
   return (
     <tr>
       <td>{producto.nombre}</td>
       {puedeActuar && (
         <td>
-          {puedeEditar   && <button>Editar</button>}
+          {puedeEditar && <button>Editar</button>}
           {puedeEliminar && <button>Eliminar</button>}
         </td>
       )}
@@ -1177,6 +1228,7 @@ Esta sección describe las limitaciones del template actual y los caminos de evo
 ### 9.1 ABAC limitado
 
 El template implementa RBAC puro con ownership básico (`check_owner_or_permission`). **No cubre** reglas como:
+
 - "puede ver vuelos de su región"
 - "puede editar si está asignado como responsable"
 - "acceso basado en atributos del recurso o del usuario"
@@ -1210,6 +1262,7 @@ El template no tiene soporte para múltiples tenants (clientes/organizaciones). 
 Auth, usuarios, roles y permisos viven en el mismo servicio. Esto es correcto para proyectos medianos. Si el sistema escala a múltiples servicios que necesitan autenticación:
 
 **Evolución natural:**
+
 1. Extraer el módulo de auth a un servicio IAM independiente
 2. Los servicios de negocio validan tokens contra el IAM (via introspection endpoint o shared secret)
 
@@ -1290,15 +1343,16 @@ docker compose logs -f postgres
 
 ### Endpoints de autenticación
 
-| Método | Endpoint | Body | Descripción |
-|---|---|---|---|
-| POST | `/api/v1/auth/login` | `username`, `password` (form-data) | Login, retorna access + refresh token |
-| POST | `/api/v1/auth/refresh` | `{"refresh_token": "..."}` | Renueva access + refresh token |
-| POST | `/api/v1/auth/logout` | — (requiere Bearer) | Logout: invalida todos los tokens (auditado) |
+| Método | Endpoint               | Body                               | Descripción                                  |
+| ------ | ---------------------- | ---------------------------------- | -------------------------------------------- |
+| POST   | `/api/v1/auth/login`   | `username`, `password` (form-data) | Login, retorna access + refresh token        |
+| POST   | `/api/v1/auth/refresh` | `{"refresh_token": "..."}`         | Renueva access + refresh token               |
+| POST   | `/api/v1/auth/logout`  | — (requiere Bearer)                | Logout: invalida todos los tokens (auditado) |
 
 ### Checklist completo para un nuevo recurso
 
 **Backend:**
+
 ```
 1. models/models.py          → Clase SQLModel con table=True (incluir owner_id si aplica ABAC)
 2. schemas/schemas.py        → DTOs Create / Read / Update
@@ -1313,6 +1367,7 @@ docker compose logs -f postgres
 ```
 
 **Frontend:**
+
 ```
 1. types/index.ts            → Interfaces X, CreateXDTO, UpdateXDTO, GetXParams
 2. lib/api/services.ts       → xService con getAll/getById/create/update/delete
