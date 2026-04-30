@@ -74,7 +74,7 @@ export default function DashboardPage() {
           <p className="text-xs font-medium text-stone-400 dark:text-stone-500 uppercase tracking-wider">Bienvenido</p>
           <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100 mt-0.5">{user?.full_name}</h2>
           <p className="text-sm text-stone-500 dark:text-stone-400 mt-0.5">
-            {user?.roles?.[0]?.name ?? 'Usuario'} · Panel de administración RBAC
+            {user?.roles?.[0]?.name ?? 'Usuario'} · Panel de administración Online Fly
           </p>
         </div>
 

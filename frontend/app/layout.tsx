@@ -13,8 +13,11 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "RBAC Application",
-  description: "Role-Based Access Control Application",
+  title: "Online Fly",
+  description: "Flights operations managment",
+  icons: {
+    icon: '/logo-isotipo.png',
+  },
 };
 
 export default function RootLayout({

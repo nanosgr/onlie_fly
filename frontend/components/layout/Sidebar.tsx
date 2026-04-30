@@ -16,6 +16,7 @@ import {
   X,
   type LucideIcon,
 } from 'lucide-react';
+import Image from 'next/image'; 
 
 interface NavItem {
   label: string;
@@ -68,11 +69,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Logo */}
         <div className="flex items-center justify-between h-14 px-5 border-b border-stone-200 dark:border-stone-800 shrink-0">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-md bg-stone-900 dark:bg-white flex items-center justify-center">
-              <Shield className="w-4 h-4 text-white dark:text-stone-900" />
+            <div className="flex items-center">                                                                              
+              <Image src="/logo-isotipo.png" alt="Aerotec" width={32} height={32} />
             </div>
             <span className="text-sm font-semibold text-stone-800 dark:text-stone-100 tracking-tight">
-              RBAC App
+              Aerotec Argentina SA
             </span>
           </div>
           <button

@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import Input from '@/components/common/Input';
 import Button from '@/components/common/Button';
-import { Shield } from 'lucide-react';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -35,11 +35,11 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Brand */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-stone-900 dark:bg-stone-100 mb-4">
-            <Shield className="w-6 h-6 text-white dark:text-stone-900" />
+          <div className="inline-flex items-center justify-center mb-4">
+            <Image src="/logo-isologo-main.png" alt="Aerotec" width={288} height={48}/>
           </div>
-          <h1 className="text-xl font-semibold text-stone-900 dark:text-stone-100">RBAC Application</h1>
-          <p className="text-sm text-stone-400 dark:text-stone-500 mt-1">Control de acceso basado en roles</p>
+          <h1 className="text-xl font-semibold text-stone-900 dark:text-stone-100">Fly online</h1>
+          <p className="text-sm text-stone-400 dark:text-stone-500 mt-1">Sistema de administración de operaciones aéreas</p>
         </div>
 
         {/* Form card */}
