@@ -212,3 +212,121 @@ export interface PasswordResetConfirmDTO {
   token: string;
   new_password: string;
 }
+
+// --- Aeronáutica ---
+
+export interface HabilitacionTipo {
+  id: number;
+  nombre: string;
+  descripcion?: string;
+}
+
+export interface Aeronave {
+  id: number;
+  matricula: string;
+  modelo: string;
+  tipo: 'monomotor' | 'bimotor' | 'otro';
+  fabricante?: string;
+  notas?: string;
+  horas_totales: number;
+  horas_proximo_mantenimiento?: number;
+  umbral_alerta_horas?: number;
+  is_active: boolean;
+  alerta_mantenimiento: boolean;
+  horas_para_mantenimiento?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export type LicenciaTipo = 'privado' | 'comercial' | 'transporte_linea_aerea';
+
+export interface Piloto {
+  id: number;
+  user_id: number;
+  licencia_tipo: LicenciaTipo;
+  numero_licencia: string;
+  psicofisico_vence: string;
+  psicofisico_vencido: boolean;
+  habilitaciones: HabilitacionTipo[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface TipoOperacion {
+  id: number;
+  nombre: string;
+  descripcion?: string;
+  is_active: boolean;
+  habilitaciones_requeridas: HabilitacionTipo[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+export type PlanificacionStatus = 'programado' | 'completado' | 'cancelado';
+
+export interface Planificacion {
+  id: number;
+  fecha: string;
+  hora_inicio: string;
+  hora_fin?: string;
+  status: PlanificacionStatus;
+  notas?: string;
+  piloto_id: number;
+  aeronave_id: number;
+  tipo_operacion_id: number;
+  created_by_id?: number;
+  piloto?: Piloto;
+  aeronave?: Aeronave;
+  tipo_operacion?: TipoOperacion;
+  registro_vuelo?: RegistroVuelo | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface RegistroVuelo {
+  id: number;
+  horas_vuelo: number;
+  combustible_litros?: number;
+  aceite_litros?: number;
+  novedades?: string;
+  planificacion_id: number;
+  piloto_id: number;
+  aeronave_id: number;
+  planificacion?: Planificacion;
+  created_at?: string;
+}
+
+export interface CreateHabilitacionDTO { nombre: string; descripcion?: string; }
+export interface UpdateHabilitacionDTO { nombre?: string; descripcion?: string; }
+
+export interface CreateAeronaveDTO {
+  matricula: string; modelo: string; tipo: 'monomotor' | 'bimotor' | 'otro';
+  fabricante?: string; notas?: string;
+  horas_totales?: number; horas_proximo_mantenimiento?: number; umbral_alerta_horas?: number;
+  is_active?: boolean;
+}
+export interface UpdateAeronaveDTO extends Partial<CreateAeronaveDTO> {}
+
+export interface CreatePilotoDTO {
+  user_id: number; licencia_tipo: LicenciaTipo; numero_licencia: string;
+  psicofisico_vence: string; habilitacion_ids?: number[];
+}
+export interface UpdatePilotoDTO extends Partial<Omit<CreatePilotoDTO, 'user_id'>> {}
+
+export interface CreateTipoOperacionDTO {
+  nombre: string; descripcion?: string; is_active?: boolean; habilitacion_ids?: number[];
+}
+export interface UpdateTipoOperacionDTO extends Partial<CreateTipoOperacionDTO> {}
+
+export interface CreatePlanificacionDTO {
+  fecha: string; hora_inicio: string; hora_fin?: string; notas?: string;
+  status?: PlanificacionStatus;
+  piloto_id: number; aeronave_id: number; tipo_operacion_id: number;
+}
+export interface UpdatePlanificacionDTO extends Partial<CreatePlanificacionDTO> {}
+
+export interface CreateRegistroVueloDTO {
+  horas_vuelo: number; combustible_litros?: number; aceite_litros?: number;
+  novedades?: string; planificacion_id: number;
+}
+export interface UpdateRegistroVueloDTO extends Partial<CreateRegistroVueloDTO> {}

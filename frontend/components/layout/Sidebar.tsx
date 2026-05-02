@@ -14,6 +14,12 @@ import {
   ClipboardList,
   LogOut,
   X,
+  Plane,
+  Calendar,
+  BookOpen,
+  UserCheck,
+  Layers,
+  Award,
   type LucideIcon,
 } from 'lucide-react';
 import Image from 'next/image'; 
@@ -25,13 +31,33 @@ interface NavItem {
   permissions?: string[];
 }
 
-const navItems: NavItem[] = [
-  { label: 'Dashboard',  href: '/dashboard',             icon: LayoutDashboard, permissions: ['dashboard:read'] },
-  { label: 'Mi Perfil',  href: '/profile',     icon: User },
-  { label: 'Usuarios',   href: '/users',       icon: Users,  permissions: ['users:read'] },
-  { label: 'Roles',      href: '/roles',       icon: Shield, permissions: ['roles:read'] },
-  { label: 'Permisos',   href: '/permissions', icon: Key,    permissions: ['permissions:read'] },
-  { label: 'Auditoría',  href: '/audit',       icon: ClipboardList, permissions: ['audit:read'] },
+interface NavSection {
+  title?: string;
+  items: NavItem[];
+}
+
+const navSections: NavSection[] = [
+  {
+    items: [
+      { label: 'Dashboard',  href: '/dashboard',   icon: LayoutDashboard, permissions: ['dashboard:read'] },
+      { label: 'Mi Perfil',  href: '/profile',     icon: User },
+      { label: 'Usuarios',   href: '/users',       icon: Users,         permissions: ['users:read'] },
+      { label: 'Roles',      href: '/roles',       icon: Shield,        permissions: ['roles:read'] },
+      { label: 'Permisos',   href: '/permissions', icon: Key,           permissions: ['permissions:read'] },
+      { label: 'Auditoría',  href: '/audit',       icon: ClipboardList, permissions: ['audit:read'] },
+    ],
+  },
+  {
+    title: 'Operaciones Aeronáuticas',
+    items: [
+      { label: 'Planificaciones',   href: '/planificaciones',  icon: Calendar,   permissions: ['planificaciones:read'] },
+      { label: 'Registros de Vuelo', href: '/registros-vuelo', icon: BookOpen,   permissions: ['registros_vuelo:read'] },
+      { label: 'Aeronaves',         href: '/aeronaves',        icon: Plane,      permissions: ['aeronaves:read'] },
+      { label: 'Pilotos',           href: '/pilotos',          icon: UserCheck,  permissions: ['pilotos:read'] },
+      { label: 'Tipos de Operación', href: '/tipos-operacion', icon: Layers,     permissions: ['tipos_operacion:read'] },
+      { label: 'Habilitaciones',    href: '/habilitaciones',   icon: Award,      permissions: ['habilitaciones:read'] },
+    ],
+  },
 ];
 
 interface SidebarProps {
@@ -100,30 +126,41 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            const Icon = item.icon;
-            return (
-              <ProtectedComponent key={item.href} permissions={item.permissions}>
-                <Link
-                  href={item.href}
-                  onClick={() => { if (window.innerWidth < 1024) onClose(); }}
-                  className={`
-                    flex items-center gap-3 px-3 py-2 rounded-md text-sm
-                    transition-colors duration-150
-                    ${isActive
-                      ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-medium'
-                      : 'text-stone-500 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800/60 hover:text-stone-800 dark:hover:text-stone-200'
-                    }
-                  `}
-                >
-                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-stone-700 dark:text-stone-200' : ''}`} />
-                  <span>{item.label}</span>
-                </Link>
-              </ProtectedComponent>
-            );
-          })}
+        <nav className="flex-1 px-3 py-3 overflow-y-auto space-y-4">
+          {navSections.map((section, sectionIdx) => (
+            <div key={sectionIdx}>
+              {section.title && (
+                <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">
+                  {section.title}
+                </p>
+              )}
+              <div className="space-y-0.5">
+                {section.items.map((item) => {
+                  const isActive = pathname === item.href;
+                  const Icon = item.icon;
+                  return (
+                    <ProtectedComponent key={item.href} permissions={item.permissions}>
+                      <Link
+                        href={item.href}
+                        onClick={() => { if (window.innerWidth < 1024) onClose(); }}
+                        className={`
+                          flex items-center gap-3 px-3 py-2 rounded-md text-sm
+                          transition-colors duration-150
+                          ${isActive
+                            ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-medium'
+                            : 'text-stone-500 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800/60 hover:text-stone-800 dark:hover:text-stone-200'
+                          }
+                        `}
+                      >
+                        <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-stone-700 dark:text-stone-200' : ''}`} />
+                        <span>{item.label}</span>
+                      </Link>
+                    </ProtectedComponent>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         {/* Logout */}

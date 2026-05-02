@@ -19,6 +19,24 @@ import {
   GetAuditLogsParams,
   PasswordResetRequestDTO,
   PasswordResetConfirmDTO,
+  HabilitacionTipo,
+  Aeronave,
+  Piloto,
+  TipoOperacion,
+  Planificacion,
+  RegistroVuelo,
+  CreateHabilitacionDTO,
+  UpdateHabilitacionDTO,
+  CreateAeronaveDTO,
+  UpdateAeronaveDTO,
+  CreatePilotoDTO,
+  UpdatePilotoDTO,
+  CreateTipoOperacionDTO,
+  UpdateTipoOperacionDTO,
+  CreatePlanificacionDTO,
+  UpdatePlanificacionDTO,
+  CreateRegistroVueloDTO,
+  UpdateRegistroVueloDTO,
 } from '@/types';
 
 function buildQuery(params: Record<string, string | number | boolean | undefined>): string {
@@ -120,4 +138,88 @@ export const authService = {
 
   confirmPasswordReset: (data: PasswordResetConfirmDTO) =>
     apiClient.post<{ message: string }>('/auth/password-reset/confirm', data),
+};
+
+export const habilitacionService = {
+  getAll: (skip = 0, limit = 100) =>
+    apiClient.get<HabilitacionTipo[]>(`/habilitaciones/?skip=${skip}&limit=${limit}`),
+  getById: (id: number) =>
+    apiClient.get<HabilitacionTipo>(`/habilitaciones/${id}`),
+  create: (data: CreateHabilitacionDTO) =>
+    apiClient.post<HabilitacionTipo>('/habilitaciones/', data),
+  update: (id: number, data: UpdateHabilitacionDTO) =>
+    apiClient.put<HabilitacionTipo>(`/habilitaciones/${id}`, data),
+  delete: (id: number) =>
+    apiClient.delete<void>(`/habilitaciones/${id}`),
+};
+
+export const aeronaveService = {
+  getAll: (params: Record<string, string | number | boolean | undefined> = {}) =>
+    apiClient.get<Aeronave[]>(`/aeronaves/${buildQuery(params)}`),
+  getAlertas: () =>
+    apiClient.get<Aeronave[]>('/aeronaves/alertas'),
+  getById: (id: number) =>
+    apiClient.get<Aeronave>(`/aeronaves/${id}`),
+  create: (data: CreateAeronaveDTO) =>
+    apiClient.post<Aeronave>('/aeronaves/', data),
+  update: (id: number, data: UpdateAeronaveDTO) =>
+    apiClient.put<Aeronave>(`/aeronaves/${id}`, data),
+  delete: (id: number) =>
+    apiClient.delete<void>(`/aeronaves/${id}`),
+};
+
+export const pilotoService = {
+  getAll: () =>
+    apiClient.get<Piloto[]>('/pilotos/'),
+  getMe: () =>
+    apiClient.get<Piloto>('/pilotos/me'),
+  getById: (id: number) =>
+    apiClient.get<Piloto>(`/pilotos/${id}`),
+  create: (data: CreatePilotoDTO) =>
+    apiClient.post<Piloto>('/pilotos/', data),
+  update: (id: number, data: UpdatePilotoDTO) =>
+    apiClient.put<Piloto>(`/pilotos/${id}`, data),
+  delete: (id: number) =>
+    apiClient.delete<void>(`/pilotos/${id}`),
+};
+
+export const tipoOperacionService = {
+  getAll: (isActive?: boolean) =>
+    apiClient.get<TipoOperacion[]>(`/tipos-operacion/${buildQuery(
+      isActive !== undefined ? { is_active: isActive } : {}
+    )}`),
+  getById: (id: number) =>
+    apiClient.get<TipoOperacion>(`/tipos-operacion/${id}`),
+  create: (data: CreateTipoOperacionDTO) =>
+    apiClient.post<TipoOperacion>('/tipos-operacion/', data),
+  update: (id: number, data: UpdateTipoOperacionDTO) =>
+    apiClient.put<TipoOperacion>(`/tipos-operacion/${id}`, data),
+  delete: (id: number) =>
+    apiClient.delete<void>(`/tipos-operacion/${id}`),
+};
+
+export const planificacionService = {
+  getAll: (params: Record<string, string | number | boolean | undefined> = {}) =>
+    apiClient.get<Planificacion[]>(`/planificaciones/${buildQuery(params)}`),
+  getById: (id: number) =>
+    apiClient.get<Planificacion>(`/planificaciones/${id}`),
+  create: (data: CreatePlanificacionDTO) =>
+    apiClient.post<Planificacion>('/planificaciones/', data),
+  update: (id: number, data: UpdatePlanificacionDTO) =>
+    apiClient.put<Planificacion>(`/planificaciones/${id}`, data),
+  cancelar: (id: number) =>
+    apiClient.patch<Planificacion>(`/planificaciones/${id}/cancelar`),
+  delete: (id: number) =>
+    apiClient.delete<void>(`/planificaciones/${id}`),
+};
+
+export const registroVueloService = {
+  getAll: (params: Record<string, string | number | boolean | undefined> = {}) =>
+    apiClient.get<RegistroVuelo[]>(`/registros-vuelo/${buildQuery(params)}`),
+  getById: (id: number) =>
+    apiClient.get<RegistroVuelo>(`/registros-vuelo/${id}`),
+  create: (data: CreateRegistroVueloDTO) =>
+    apiClient.post<RegistroVuelo>('/registros-vuelo/', data),
+  update: (id: number, data: UpdateRegistroVueloDTO) =>
+    apiClient.put<RegistroVuelo>(`/registros-vuelo/${id}`, data),
 };
