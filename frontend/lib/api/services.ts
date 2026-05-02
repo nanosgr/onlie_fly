@@ -141,8 +141,10 @@ export const authService = {
 };
 
 export const habilitacionService = {
-  getAll: (skip = 0, limit = 100) =>
-    apiClient.get<HabilitacionTipo[]>(`/habilitaciones/?skip=${skip}&limit=${limit}`),
+  getAll: async (skip = 0, limit = 100) => {
+    const res = await apiClient.get<PaginatedResponse<HabilitacionTipo>>(`/habilitaciones/?skip=${skip}&limit=${limit}`);
+    return res.items;
+  },
   getById: (id: number) =>
     apiClient.get<HabilitacionTipo>(`/habilitaciones/${id}`),
   create: (data: CreateHabilitacionDTO) =>
@@ -154,8 +156,10 @@ export const habilitacionService = {
 };
 
 export const aeronaveService = {
-  getAll: (params: Record<string, string | number | boolean | undefined> = {}) =>
-    apiClient.get<Aeronave[]>(`/aeronaves/${buildQuery(params)}`),
+  getAll: async (params: Record<string, string | number | boolean | undefined> = {}) => {
+    const res = await apiClient.get<PaginatedResponse<Aeronave>>(`/aeronaves/${buildQuery(params)}`);
+    return res.items;
+  },
   getAlertas: () =>
     apiClient.get<Aeronave[]>('/aeronaves/alertas'),
   getById: (id: number) =>
@@ -169,8 +173,10 @@ export const aeronaveService = {
 };
 
 export const pilotoService = {
-  getAll: () =>
-    apiClient.get<Piloto[]>('/pilotos/'),
+  getAll: async () => {
+    const res = await apiClient.get<PaginatedResponse<Piloto>>('/pilotos/');
+    return res.items;
+  },
   getMe: () =>
     apiClient.get<Piloto>('/pilotos/me'),
   getById: (id: number) =>
@@ -184,10 +190,12 @@ export const pilotoService = {
 };
 
 export const tipoOperacionService = {
-  getAll: (isActive?: boolean) =>
-    apiClient.get<TipoOperacion[]>(`/tipos-operacion/${buildQuery(
+  getAll: async (isActive?: boolean) => {
+    const res = await apiClient.get<PaginatedResponse<TipoOperacion>>(`/tipos-operacion/${buildQuery(
       isActive !== undefined ? { is_active: isActive } : {}
-    )}`),
+    )}`);
+    return res.items;
+  },
   getById: (id: number) =>
     apiClient.get<TipoOperacion>(`/tipos-operacion/${id}`),
   create: (data: CreateTipoOperacionDTO) =>
@@ -199,8 +207,10 @@ export const tipoOperacionService = {
 };
 
 export const planificacionService = {
-  getAll: (params: Record<string, string | number | boolean | undefined> = {}) =>
-    apiClient.get<Planificacion[]>(`/planificaciones/${buildQuery(params)}`),
+  getAll: async (params: Record<string, string | number | boolean | undefined> = {}) => {
+    const res = await apiClient.get<PaginatedResponse<Planificacion>>(`/planificaciones/${buildQuery(params)}`);
+    return res.items;
+  },
   getById: (id: number) =>
     apiClient.get<Planificacion>(`/planificaciones/${id}`),
   create: (data: CreatePlanificacionDTO) =>
@@ -214,8 +224,10 @@ export const planificacionService = {
 };
 
 export const registroVueloService = {
-  getAll: (params: Record<string, string | number | boolean | undefined> = {}) =>
-    apiClient.get<RegistroVuelo[]>(`/registros-vuelo/${buildQuery(params)}`),
+  getAll: async (params: Record<string, string | number | boolean | undefined> = {}) => {
+    const res = await apiClient.get<PaginatedResponse<RegistroVuelo>>(`/registros-vuelo/${buildQuery(params)}`);
+    return res.items;
+  },
   getById: (id: number) =>
     apiClient.get<RegistroVuelo>(`/registros-vuelo/${id}`),
   create: (data: CreateRegistroVueloDTO) =>
