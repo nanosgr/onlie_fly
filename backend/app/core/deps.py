@@ -146,3 +146,116 @@ def require_permission_update():
 
 def require_permission_delete():
     return require_permissions(["permissions:delete"])
+
+
+# ---------------------------------------------------------------------------
+# ABAC: dependencias del dominio aeronáutico
+# ---------------------------------------------------------------------------
+
+def get_current_piloto(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    from app.services.crud import piloto_service  # lazy para evitar importación circular
+    piloto = piloto_service.get_piloto_by_user_id(db, current_user.id)
+    if piloto is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="El usuario no tiene perfil de piloto asociado.",
+        )
+    return piloto
+
+
+def require_piloto_activo():
+    from datetime import date
+    def checker(current_user: User = Depends(get_current_active_user), db: Session = Depends(get_db)):
+        from app.services.crud import piloto_service
+        piloto = piloto_service.get_piloto_by_user_id(db, current_user.id)
+        if piloto is None:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="El usuario no tiene perfil de piloto asociado.")
+        if piloto.psicofisico_vence < date.today():
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Psicofísico vencido. No puede realizar operaciones.")
+        return piloto
+    return checker
+
+
+def is_piloto_role(current_user: User) -> bool:
+    """Retorna True si el usuario tiene el rol Piloto pero no tiene planificaciones:read global."""
+    cache_key = (current_user.username, current_user.token_version)
+    cached = _permissions_cache.get(cache_key)
+    user_permissions = cached[1] if cached else get_user_permissions(current_user)
+    return "*:*" not in user_permissions and "planificaciones:read" not in user_permissions
+
+
+# ---------------------------------------------------------------------------
+# Helpers de permisos — dominio aeronáutico
+# ---------------------------------------------------------------------------
+
+def require_aeronave_read():
+    return require_permissions(["aeronaves:read"])
+
+def require_aeronave_create():
+    return require_permissions(["aeronaves:create"])
+
+def require_aeronave_update():
+    return require_permissions(["aeronaves:update"])
+
+def require_aeronave_delete():
+    return require_permissions(["aeronaves:delete"])
+
+def require_piloto_read():
+    return require_permissions(["pilotos:read"])
+
+def require_piloto_create():
+    return require_permissions(["pilotos:create"])
+
+def require_piloto_update():
+    return require_permissions(["pilotos:update"])
+
+def require_piloto_delete():
+    return require_permissions(["pilotos:delete"])
+
+def require_habilitacion_read():
+    return require_permissions(["habilitaciones:read"])
+
+def require_habilitacion_create():
+    return require_permissions(["habilitaciones:create"])
+
+def require_habilitacion_update():
+    return require_permissions(["habilitaciones:update"])
+
+def require_habilitacion_delete():
+    return require_permissions(["habilitaciones:delete"])
+
+def require_tipo_operacion_read():
+    return require_permissions(["tipos_operacion:read"])
+
+def require_tipo_operacion_create():
+    return require_permissions(["tipos_operacion:create"])
+
+def require_tipo_operacion_update():
+    return require_permissions(["tipos_operacion:update"])
+
+def require_tipo_operacion_delete():
+    return require_permissions(["tipos_operacion:delete"])
+
+def require_planificacion_read():
+    return require_permissions(["planificaciones:read"])
+
+def require_planificacion_create():
+    return require_permissions(["planificaciones:create"])
+
+def require_planificacion_update():
+    return require_permissions(["planificaciones:update"])
+
+def require_planificacion_delete():
+    return require_permissions(["planificaciones:delete"])
+
+def require_registro_vuelo_read():
+    return require_permissions(["registros_vuelo:read"])
+
+def require_registro_vuelo_create():
+    return require_permissions(["registros_vuelo:create"])
+
+def require_registro_vuelo_update():
+    return require_permissions(["registros_vuelo:update"])
