@@ -202,7 +202,7 @@ function CalendarView({
                         </span>
                       </div>
                       <div className="text-stone-500 dark:text-stone-400 mt-0.5">
-                        {p.aeronave?.matricula ?? `Aeronave #${p.aeronave_id}`} — {p.piloto?.numero_licencia ?? `Piloto #${p.piloto_id}`}
+                        {p.aeronave?.matricula ?? `Aeronave #${p.aeronave_id}`} — {p.piloto?.nombre_completo ?? p.piloto?.numero_licencia ?? `Piloto #${p.piloto_id}`}
                       </div>
                     </div>
                   ))}
@@ -386,7 +386,7 @@ export default function PlanificacionesPage() {
     {
       key: 'piloto_id',
       label: 'Piloto',
-      render: (p) => <span>{p.piloto?.numero_licencia ?? `#${p.piloto_id}`}</span>,
+      render: (p) => <span>{p.piloto?.nombre_completo ?? p.piloto?.numero_licencia ?? `#${p.piloto_id}`}</span>,
     },
     {
       key: 'aeronave_id',
@@ -587,7 +587,7 @@ export default function PlanificacionesPage() {
               >
                 <option value="">Seleccionar piloto...</option>
                 {pilotos.map((p) => (
-                  <option key={p.id} value={p.id}>{p.numero_licencia}</option>
+                  <option key={p.id} value={p.id}>{p.nombre_completo ?? p.numero_licencia}</option>
                 ))}
               </select>
             </div>

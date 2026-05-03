@@ -26,7 +26,7 @@ def read_my_piloto(
     piloto = piloto_service.get_piloto_by_user_id(db, current_user.id)
     if not piloto:
         raise HTTPException(status_code=404, detail="No tiene perfil de piloto asociado.")
-    return piloto_service.to_read(piloto)
+    return piloto_service.to_read(piloto, db)
 
 
 @router.get("/", response_model=PaginatedResponse[PilotoRead])
@@ -40,7 +40,7 @@ def read_pilotos(
     total = piloto_service.count_pilotos(db)
     items = piloto_service.get_pilotos(db, skip=skip, limit=size)
     return PaginatedResponse(
-        items=[piloto_service.to_read(p) for p in items],
+        items=[piloto_service.to_read(p, db) for p in items],
         total=total,
         page=page,
         size=size,
@@ -57,7 +57,7 @@ def create_piloto(
     if piloto_service.get_piloto_by_user_id(db, data.user_id):
         raise HTTPException(status_code=409, detail="El usuario ya tiene un perfil de piloto.")
     obj = piloto_service.create_piloto(db, data)
-    return piloto_service.to_read(obj)
+    return piloto_service.to_read(obj, db)
 
 
 @router.get("/{piloto_id}", response_model=PilotoRead)
@@ -71,7 +71,7 @@ def read_piloto(
         raise HTTPException(status_code=404, detail="Piloto no encontrado.")
     if not check_owner_or_permission(piloto.user_id, current_user, "pilotos:read"):
         raise HTTPException(status_code=403, detail="No tiene permiso para ver este perfil.")
-    return piloto_service.to_read(piloto)
+    return piloto_service.to_read(piloto, db)
 
 
 @router.put("/{piloto_id}", response_model=PilotoRead)
@@ -84,7 +84,7 @@ def update_piloto(
     obj = piloto_service.update_piloto(db, piloto_id, data)
     if not obj:
         raise HTTPException(status_code=404, detail="Piloto no encontrado.")
-    return piloto_service.to_read(obj)
+    return piloto_service.to_read(obj, db)
 
 
 @router.delete("/{piloto_id}", status_code=204)

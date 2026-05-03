@@ -90,29 +90,6 @@ export default function LoginPage() {
             </div>
           </form>
         </div>
-
-        {/* Test credentials */}
-        <div className="mt-4 px-4 py-3 bg-stone-100 dark:bg-stone-900/60 rounded-lg border border-stone-200 dark:border-stone-800">
-          <p className="text-xs font-medium text-stone-500 dark:text-stone-400 mb-2">Credenciales de prueba</p>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-            {[
-              ['superadmin', 'admin123'],
-              ['admin', 'admin123'],
-              ['manager', 'manager123'],
-              ['user', 'user123'],
-            ].map(([u, p]) => (
-              <button
-                key={u}
-                type="button"
-                onClick={() => { setUsername(u); setPassword(p); }}
-                className="text-left text-xs text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 transition-colors py-0.5"
-              >
-                <span className="font-medium text-stone-700 dark:text-stone-300">{u}</span>
-                <span className="text-stone-400 dark:text-stone-600"> / {p}</span>
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );

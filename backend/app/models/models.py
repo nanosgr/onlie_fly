@@ -419,6 +419,7 @@ class PilotoRead(PilotoBase):
     user_id: int
     habilitaciones: List[HabilitacionTipoRead] = []
     psicofisico_vencido: bool = False
+    nombre_completo: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

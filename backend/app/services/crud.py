@@ -460,10 +460,14 @@ class PilotoService:
         propias = {h.id for h in piloto.habilitaciones}
         return requeridas.issubset(propias)
 
-    def to_read(self, piloto: Piloto) -> PilotoRead:
+    def to_read(self, piloto: Piloto, db: Optional[Session] = None) -> PilotoRead:
         data = piloto.model_dump()
         data["habilitaciones"] = [HabilitacionTipoRead.model_validate(h) for h in piloto.habilitaciones]
         data["psicofisico_vencido"] = self.psicofisico_vencido(piloto)
+        if db is not None:
+            user = db.get(User, piloto.user_id)
+            if user:
+                data["nombre_completo"] = user.full_name or user.username
         return PilotoRead(**data)
 
 

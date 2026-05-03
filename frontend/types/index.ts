@@ -247,6 +247,7 @@ export interface Piloto {
   numero_licencia: string;
   psicofisico_vence: string;
   psicofisico_vencido: boolean;
+  nombre_completo?: string;
   habilitaciones: HabilitacionTipo[];
   created_at?: string;
   updated_at?: string;
