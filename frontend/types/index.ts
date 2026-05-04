@@ -286,6 +286,8 @@ export interface Planificacion {
 
 export interface RegistroVuelo {
   id: number;
+  hora_inicio_real?: string;
+  hora_fin_real?: string;
   horas_vuelo: number;
   combustible_litros?: number;
   aceite_litros?: number;
@@ -327,7 +329,17 @@ export interface CreatePlanificacionDTO {
 export interface UpdatePlanificacionDTO extends Partial<CreatePlanificacionDTO> {}
 
 export interface CreateRegistroVueloDTO {
-  horas_vuelo: number; combustible_litros?: number; aceite_litros?: number;
-  novedades?: string; planificacion_id: number;
+  planificacion_id: number;
+  hora_inicio_real: string;
+  hora_fin_real: string;
+  combustible_litros?: number;
+  aceite_litros?: number;
+  novedades?: string;
 }
-export interface UpdateRegistroVueloDTO extends Partial<CreateRegistroVueloDTO> {}
+export interface UpdateRegistroVueloDTO {
+  hora_inicio_real?: string;
+  hora_fin_real?: string;
+  combustible_litros?: number;
+  aceite_litros?: number;
+  novedades?: string;
+}

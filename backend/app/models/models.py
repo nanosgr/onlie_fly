@@ -572,6 +572,14 @@ class PlanificacionUpdate(SQLModel):
 # ---------------------------------------------------------------------------
 
 class RegistroVueloBase(SQLModel):
+    hora_inicio_real: Optional[time] = Field(
+        default=None,
+        sa_column=Column(Time, nullable=True),
+    )
+    hora_fin_real: Optional[time] = Field(
+        default=None,
+        sa_column=Column(Time, nullable=True),
+    )
     horas_vuelo: Decimal = Field(
         sa_column=Column(Numeric(8, 2), nullable=False)
     )
@@ -617,8 +625,13 @@ class RegistroVuelo(RegistroVueloBase, table=True):
     )
 
 
-class RegistroVueloCreate(RegistroVueloBase):
+class RegistroVueloCreate(SQLModel):
     planificacion_id: int
+    hora_inicio_real: time
+    hora_fin_real: time
+    combustible_litros: Optional[Decimal] = None
+    aceite_litros: Optional[Decimal] = None
+    novedades: Optional[str] = None
 
 
 class RegistroVueloRead(RegistroVueloBase):
@@ -631,7 +644,8 @@ class RegistroVueloRead(RegistroVueloBase):
 
 
 class RegistroVueloUpdate(SQLModel):
-    horas_vuelo: Optional[Decimal] = None
+    hora_inicio_real: Optional[time] = None
+    hora_fin_real: Optional[time] = None
     combustible_litros: Optional[Decimal] = None
     aceite_litros: Optional[Decimal] = None
     novedades: Optional[str] = None

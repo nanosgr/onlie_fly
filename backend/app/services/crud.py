@@ -1,5 +1,5 @@
-from datetime import date as date_cls
-from decimal import Decimal
+from datetime import date as date_cls, datetime as dt_cls, timedelta, time as time_cls
+from decimal import Decimal, ROUND_HALF_UP
 from sqlmodel import Session, select, func, or_
 from sqlalchemy import select as sa_select
 from sqlalchemy.orm import selectinload
@@ -652,6 +652,16 @@ class PlanificacionService:
 # RegistroVueloService
 # ---------------------------------------------------------------------------
 
+def _calcular_horas_vuelo(hora_inicio: time_cls, hora_fin: time_cls) -> Decimal:
+    base = date_cls(2000, 1, 1)
+    inicio = dt_cls.combine(base, hora_inicio)
+    fin = dt_cls.combine(base, hora_fin)
+    if fin <= inicio:
+        fin += timedelta(days=1)
+    minutos = (fin - inicio).total_seconds() / 60
+    return Decimal(str(minutos / 60)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
 class RegistroVueloService:
     def _load_stmt(self):
         return (sa_select(RegistroVuelo)
@@ -699,13 +709,20 @@ class RegistroVueloService:
         existing = db.exec(select(RegistroVuelo).where(RegistroVuelo.planificacion_id == data.planificacion_id)).first()
         if existing:
             raise HTTPException(status_code=409, detail="Ya existe un registro de vuelo para esta planificación.")
+        horas_vuelo = _calcular_horas_vuelo(data.hora_inicio_real, data.hora_fin_real)
         obj = RegistroVuelo(
-            **data.model_dump(),
+            planificacion_id=data.planificacion_id,
             piloto_id=current_piloto.id,
             aeronave_id=planificacion.aeronave_id,
+            hora_inicio_real=data.hora_inicio_real,
+            hora_fin_real=data.hora_fin_real,
+            horas_vuelo=horas_vuelo,
+            combustible_litros=data.combustible_litros,
+            aceite_litros=data.aceite_litros,
+            novedades=data.novedades,
         )
         db.add(obj)
-        aeronave_service.sumar_horas(db, planificacion.aeronave_id, data.horas_vuelo)
+        aeronave_service.sumar_horas(db, planificacion.aeronave_id, horas_vuelo)
         planificacion.status = PlanificacionStatusEnum.completado
         db.commit()
         db.refresh(obj)
@@ -722,9 +739,14 @@ class RegistroVueloService:
                 detail="Solo el piloto que creó el registro puede modificarlo.",
             )
         update_data = data.model_dump(exclude_unset=True)
-        if "horas_vuelo" in update_data:
-            diferencia = update_data["horas_vuelo"] - obj.horas_vuelo
+        nueva_inicio = update_data.get("hora_inicio_real", obj.hora_inicio_real)
+        nueva_fin = update_data.get("hora_fin_real", obj.hora_fin_real)
+        if ("hora_inicio_real" in update_data or "hora_fin_real" in update_data) \
+                and nueva_inicio is not None and nueva_fin is not None:
+            nueva_horas = _calcular_horas_vuelo(nueva_inicio, nueva_fin)
+            diferencia = nueva_horas - obj.horas_vuelo
             aeronave_service.sumar_horas(db, obj.aeronave_id, diferencia)
+            update_data["horas_vuelo"] = nueva_horas
         for field, value in update_data.items():
             setattr(obj, field, value)
         db.commit()

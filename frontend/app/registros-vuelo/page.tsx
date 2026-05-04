@@ -30,9 +30,11 @@ export default function RegistrosVueloPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [aeronaveFilter, setAeronaveFilter] = useState('all');
   const [createForm, setCreateForm] = useState<CreateRegistroVueloDTO>({
-    horas_vuelo: 0, combustible_litros: undefined, aceite_litros: undefined, novedades: '', planificacion_id: 0,
+    planificacion_id: 0, hora_inicio_real: '', hora_fin_real: '',
+    combustible_litros: undefined, aceite_litros: undefined, novedades: '',
   });
   const [editForm, setEditForm] = useState<UpdateRegistroVueloDTO>({});
+  const [horasCalculadas, setHorasCalculadas] = useState<number | null>(null);
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -55,9 +57,47 @@ export default function RegistrosVueloPage() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  // Planificación seleccionada en el modal de creación
+  const planSeleccionada = useMemo(() =>
+    planificaciones.find(p => p.id === createForm.planificacion_id) ?? null,
+    [planificaciones, createForm.planificacion_id]
+  );
+
+  // Pre-poblar horas desde la planificación al seleccionarla
+  useEffect(() => {
+    if (planSeleccionada) {
+      setCreateForm(prev => ({
+        ...prev,
+        hora_inicio_real: planSeleccionada.hora_inicio.slice(0, 5),
+        hora_fin_real: planSeleccionada.hora_fin?.slice(0, 5) ?? '',
+      }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [planSeleccionada?.id]);
+
+  // Cálculo en tiempo real de horas_vuelo
+  useEffect(() => {
+    const inicio = editing ? editForm.hora_inicio_real : createForm.hora_inicio_real;
+    const fin = editing ? editForm.hora_fin_real : createForm.hora_fin_real;
+    if (inicio && fin && inicio.length >= 5 && fin.length >= 5) {
+      const [h1, m1] = inicio.split(':').map(Number);
+      const [h2, m2] = fin.split(':').map(Number);
+      let min = (h2 * 60 + m2) - (h1 * 60 + m1);
+      if (min < 0) min += 1440;
+      setHorasCalculadas(Math.round(min / 60 * 100) / 100);
+    } else {
+      setHorasCalculadas(null);
+    }
+  }, [createForm.hora_inicio_real, createForm.hora_fin_real,
+      editForm.hora_inicio_real, editForm.hora_fin_real, editing]);
+
   const handleCreate = () => {
     setEditing(null);
-    setCreateForm({ horas_vuelo: 0, combustible_litros: undefined, aceite_litros: undefined, novedades: '', planificacion_id: 0 });
+    setCreateForm({
+      planificacion_id: 0, hora_inicio_real: '', hora_fin_real: '',
+      combustible_litros: undefined, aceite_litros: undefined, novedades: '',
+    });
+    setHorasCalculadas(null);
     setFormError('');
     setIsModalOpen(true);
   };
@@ -65,7 +105,8 @@ export default function RegistrosVueloPage() {
   const handleEdit = (item: RegistroVuelo) => {
     setEditing(item);
     setEditForm({
-      horas_vuelo: item.horas_vuelo,
+      hora_inicio_real: item.hora_inicio_real?.slice(0, 5) ?? '',
+      hora_fin_real: item.hora_fin_real?.slice(0, 5) ?? '',
       combustible_litros: item.combustible_litros,
       aceite_litros: item.aceite_litros,
       novedades: item.novedades ?? '',
@@ -82,8 +123,13 @@ export default function RegistrosVueloPage() {
         await registroVueloService.update(editing.id, editForm);
         success('Registro actualizado');
       } else {
-        if (!createForm.planificacion_id || !createForm.horas_vuelo) {
-          setFormError('Planificación y horas de vuelo son requeridas');
+        if (!createForm.planificacion_id || !createForm.hora_inicio_real || !createForm.hora_fin_real) {
+          setFormError('Planificación, hora de inicio y hora de fin son requeridas');
+          setIsSubmitting(false);
+          return;
+        }
+        if (horasCalculadas !== null && horasCalculadas <= 0) {
+          setFormError('La hora de fin debe ser posterior a la hora de inicio');
           setIsSubmitting(false);
           return;
         }
@@ -137,11 +183,39 @@ export default function RegistrosVueloPage() {
     {
       key: 'piloto_id',
       label: 'Piloto',
-      render: (r) => <span>{r.planificacion?.piloto?.numero_licencia ?? `#${r.piloto_id}`}</span>,
+      render: (r) => (
+        <span>
+          {r.planificacion?.piloto?.nombre_completo
+            ?? r.planificacion?.piloto?.numero_licencia
+            ?? `#${r.piloto_id}`}
+        </span>
+      ),
     },
-    { key: 'horas_vuelo', label: 'Horas Vuelo', render: (r) => <span>{r.horas_vuelo} hs</span> },
-    { key: 'combustible_litros', label: 'Combustible', render: (r) => <span>{r.combustible_litros != null ? `${r.combustible_litros} L` : '—'}</span> },
-    { key: 'aceite_litros', label: 'Aceite', render: (r) => <span>{r.aceite_litros != null ? `${r.aceite_litros} L` : '—'}</span> },
+    {
+      key: 'hora_inicio_real',
+      label: 'Inicio Real',
+      render: (r) => <span>{r.hora_inicio_real?.slice(0, 5) ?? '—'}</span>,
+    },
+    {
+      key: 'hora_fin_real',
+      label: 'Fin Real',
+      render: (r) => <span>{r.hora_fin_real?.slice(0, 5) ?? '—'}</span>,
+    },
+    {
+      key: 'horas_vuelo',
+      label: 'Horas Vuelo',
+      render: (r) => <span>{r.horas_vuelo} hs</span>,
+    },
+    {
+      key: 'combustible_litros',
+      label: 'Combustible',
+      render: (r) => <span>{r.combustible_litros != null ? `${r.combustible_litros} L` : '—'}</span>,
+    },
+    {
+      key: 'aceite_litros',
+      label: 'Aceite',
+      render: (r) => <span>{r.aceite_litros != null ? `${r.aceite_litros} L` : '—'}</span>,
+    },
     {
       key: 'novedades',
       label: 'Novedades',
@@ -158,7 +232,7 @@ export default function RegistrosVueloPage() {
 
   const planOptions = planificaciones.map((p) => ({
     value: String(p.id),
-    label: `${p.fecha} ${p.hora_inicio} — ${p.aeronave?.matricula ?? p.aeronave_id} / ${p.piloto?.numero_licencia ?? p.piloto_id}`,
+    label: `${p.fecha} ${p.hora_inicio.slice(0, 5)} — ${p.aeronave?.matricula ?? p.aeronave_id} / ${p.piloto?.nombre_completo ?? p.piloto?.numero_licencia ?? p.piloto_id}`,
   }));
 
   const setCreate = (field: keyof CreateRegistroVueloDTO, value: unknown) =>
@@ -217,6 +291,7 @@ export default function RegistrosVueloPage() {
         <div className="space-y-4">
           <ErrorAlert message={formError} />
 
+          {/* Selector de planificación */}
           {editing ? (
             <div>
               <label className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1.5">Planificación</label>
@@ -240,18 +315,59 @@ export default function RegistrosVueloPage() {
             </div>
           )}
 
-          <div className="grid grid-cols-3 gap-4">
+          {/* Tiempos planificados como referencia */}
+          {planSeleccionada && !editing && (
+            <div className="rounded-md bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 px-3 py-2 text-xs text-blue-700 dark:text-blue-300">
+              <span className="font-medium">Tiempos planificados:</span>{' '}
+              {planSeleccionada.hora_inicio.slice(0, 5)}
+              {planSeleccionada.hora_fin ? ` → ${planSeleccionada.hora_fin.slice(0, 5)}` : ' (sin hora fin planificada)'}
+            </div>
+          )}
+          {editing?.planificacion && (
+            <div className="rounded-md bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 px-3 py-2 text-xs text-blue-700 dark:text-blue-300">
+              <span className="font-medium">Tiempos planificados:</span>{' '}
+              {editing.planificacion.hora_inicio.slice(0, 5)}
+              {editing.planificacion.hora_fin ? ` → ${editing.planificacion.hora_fin.slice(0, 5)}` : ' (sin hora fin planificada)'}
+            </div>
+          )}
+
+          {/* Time pickers reales */}
+          <div className="grid grid-cols-2 gap-4">
             <Input
-              label="Horas de Vuelo *"
-              type="number"
-              step="0.1"
-              value={editing ? (editForm.horas_vuelo ?? '') : createForm.horas_vuelo}
+              label="Hora Inicio Real *"
+              type="time"
+              value={editing ? (editForm.hora_inicio_real ?? '') : createForm.hora_inicio_real}
               onChange={(e) => editing
-                ? setEdit('horas_vuelo', Number(e.target.value))
-                : setCreate('horas_vuelo', Number(e.target.value))
+                ? setEdit('hora_inicio_real', e.target.value)
+                : setCreate('hora_inicio_real', e.target.value)
               }
               required
             />
+            <Input
+              label="Hora Fin Real *"
+              type="time"
+              value={editing ? (editForm.hora_fin_real ?? '') : createForm.hora_fin_real}
+              onChange={(e) => editing
+                ? setEdit('hora_fin_real', e.target.value)
+                : setCreate('hora_fin_real', e.target.value)
+              }
+              required
+            />
+          </div>
+
+          {/* Preview de horas calculadas */}
+          {horasCalculadas !== null && (
+            <div className={`rounded-md px-3 py-2 text-xs font-medium border ${
+              horasCalculadas > 0
+                ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
+                : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
+            }`}>
+              Horas de vuelo calculadas: <span className="font-bold">{horasCalculadas} hs</span>
+            </div>
+          )}
+
+          {/* Consumibles */}
+          <div className="grid grid-cols-2 gap-4">
             <Input
               label="Combustible (L)"
               type="number"
