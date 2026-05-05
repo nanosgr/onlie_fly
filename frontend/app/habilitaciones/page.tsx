@@ -106,7 +106,7 @@ export default function HabilitacionesPage() {
     const q = searchQuery.toLowerCase();
     if (!q) return items;
     return items.filter((item) =>
-      SEARCH_FIELDS.some((f) => String((item as Record<string, unknown>)[f] ?? '').toLowerCase().includes(q))
+      SEARCH_FIELDS.some((f) => String((item as unknown as Record<string, unknown>)[f] ?? '').toLowerCase().includes(q))
     );
   }, [items, searchQuery]);
 

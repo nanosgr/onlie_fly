@@ -5,7 +5,7 @@ interface FilterOption {
 
 interface FilterSelectProps {
   label: string;
-  options: FilterOption[];
+  options: readonly FilterOption[];
   value: string;
   onChange: (value: string) => void;
 }
