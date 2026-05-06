@@ -29,6 +29,7 @@ backend/.env
 .env
 *.env
 !*.env.example
+*.tar
 
 # Pytest / coverage
 .pytest_cache/
